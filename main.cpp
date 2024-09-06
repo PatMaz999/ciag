@@ -1,24 +1,34 @@
 #include <iostream>
+#include <initializer_list>
+
+//popraw przypadek pustej listy inizjalizacyjnej (konstruktor)
+//mechanizm kopiowania i przenoszenia
+//dodaj funkcje wypisz();
 
 using namespace std;
 
 /*******************************ciag************************************************/
+class ciag;
+ostream& operator<<(ostream& strumien, ciag & c); //ciag const
 class ciag {
 private:
     int rozmiar; //liczymy od 0
     int stopien;
-    static void wypisz_wartosc(double* liczba, int sto, bool ostatni = false);
-    static void wypisz_stopien(int liczba, bool ostatni = false);
+    void wypisz_wartosc(ostream& strumien, const double* liczba, const int sto, bool ostatni = false);
+    void wypisz_stopien(ostream& strumien, const int liczba, bool ostatni = false);
 protected:
     double* wzor;
 public:
     ciag() : rozmiar(0), stopien(0), wzor(new double[1]) { wzor[0] = 0; };
     ciag(initializer_list<double> lista);
     ~ciag() { delete[] wzor; };
-    void wypisz();
+    friend ostream& operator<<(ostream& strumien, ciag & c); //ciag const
+    //void wypisz();
 };
 
-ciag::ciag(initializer_list<double> lista): rozmiar(lista.size() - 1){ //popraw przypadek pustej listy
+//////////////////*konstruktory*/
+
+ciag::ciag(initializer_list<double> lista): rozmiar(lista.size() - 1){
     wzor = new double[lista.size()];
     for (int i = 0; i < lista.size(); ++i) {
         wzor[i] = *(lista.begin() + i);
@@ -31,56 +41,56 @@ ciag::ciag(initializer_list<double> lista): rozmiar(lista.size() - 1){ //popraw 
             break;
     }
 }
-                                        /*wypisz*/
-void ciag::wypisz() {
-    if(rozmiar == 0){
-        cout << wzor[0] << endl;
-        return;
+
+////////////////////*operator<<*/
+
+ostream& operator<<(ostream& strumien, ciag& c) { //ciag const// //brag referencji do obiektu ciag powoduje podwójne wywo³anie destruktora
+    if (c.rozmiar == 0) {
+        strumien << c.wzor[0] << endl;
+        return strumien;
     }
     int ile_zer = 0;
-    for (int i = rozmiar; i >= 0; i--) {
-        if (wzor[i] == 0)
+    for (int i = c.rozmiar; i >= 0; i--) {
+        if (c.wzor[i] == 0)
             ++ile_zer;
         else
             break;
     }
-    for (int i = 0; i <= rozmiar; ++i) {
-        if ((i + ile_zer) == rozmiar) {
-            wypisz_wartosc(wzor + i, rozmiar - i, true);
+    for (int i = 0; i <= c.rozmiar; ++i) {
+        if ((i + ile_zer) == c.rozmiar) {
+            c.wypisz_wartosc(strumien, c.wzor + i, c.rozmiar - i, true);
             break;
         }
-        wypisz_wartosc(wzor + i, rozmiar - i);
+        c.wypisz_wartosc(strumien, c.wzor + i, c.rozmiar - i);
     }
+    return strumien;
 }
 
-void ciag::wypisz_wartosc(double* liczba, int sto, bool ostatni) {
+void ciag::wypisz_wartosc(ostream& strumien, const double* liczba, const int sto, bool ostatni) {
     if (*liczba > 1) {
-        cout << *liczba;
-        wypisz_stopien(sto, ostatni);
+        strumien << *liczba;
+        wypisz_stopien(strumien, sto, ostatni);
     }
     else if (*liczba == 1) {
         if(sto != 0)
-            wypisz_stopien(sto, ostatni);
+            wypisz_stopien(strumien, sto, ostatni);
         else
-            cout << *liczba;
+            strumien << *liczba;
     }
 }
 
-void ciag::wypisz_stopien(int sto, bool ostatni) {
+void ciag::wypisz_stopien(ostream& strumien, const int sto, bool ostatni) {
     if (sto > 1) {
-        cout << "n^" << sto;
+        strumien << "n^" << sto;
         if (ostatni == false)
-            cout << " + ";
+            strumien << " + ";
     }
     else if (sto == 1) {
-        cout << "n";
+        strumien << "n";
         if (ostatni == false)
-            cout << " + ";
+            strumien << " + ";
     }
 }
-                                        /*wypisz*/
-
-
 
 /*******************************ciag_arytmetyczny************************************/
 class ciag_arytmetyczny {
@@ -96,7 +106,7 @@ class ciag_geometryczny {
 int main()
 {
     ciag abc{0,0,0,1,2,0,0,3,0,0,0};
-    abc.wypisz();
+    cout << abc << "\t" << abc;
     //ciag abcd{ {1} };
     //cout << endl << abc.rozmiar << " " << abc.stopien;
 }
